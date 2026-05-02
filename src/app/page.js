@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Monitor, FolderOpen, Terminal as TerminalIcon, Settings, X, Minimize2 } from 'lucide-react';
+import { Monitor, FolderOpen, Terminal as TerminalIcon, Settings as SettingsIcon, Minimize2, X } from 'lucide-react';
 import TextEditor from './components/TextEditor';
+import Settings from './components/Settings';
+import FileExplorer from './components/FileExplorer';
 
 export default function WebOS() {
   const [currentTime, setCurrentTime] = useState('');
@@ -11,7 +13,10 @@ export default function WebOS() {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      setCurrentTime(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+      setCurrentTime(now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }));
     };
     updateTime();
     const interval = setInterval(updateTime, 10000);
@@ -22,7 +27,9 @@ export default function WebOS() {
     const newWindow = {
       id: Date.now(),
       type: appType,
-      title: appType === 'editor' ? 'Untitled - Text Editor' : 'App',
+      title: appType === 'editor' ? 'Untitled - Text Editor' : 
+       appType === 'settings' ? 'Settings' : 
+       appType === 'files' ? 'File Explorer' : 'App',
       x: 150 + openWindows.length * 40,
       y: 100 + openWindows.length * 30,
     };
@@ -36,35 +43,35 @@ export default function WebOS() {
   return (
     <div className="h-screen w-screen overflow-hidden bg-black text-white flex flex-col relative">
 
-      {/*TOP NAVBAR*/}
+      {/* TOP NAVBAR */}
       <nav className="h-12 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-700 flex items-center px-4 z-50">
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-slate-800 rounded flex items-center justify-center text-s font-bold cursor-pointer">@</div>
-            <span className="font-semibold text-lg tracking-tight cursor-pointer">NexOS</span>
+          <div className="flex items-center gap-2 cursor-pointer">
+            <div className="w-6 h-6 bg-slate-800 rounded flex items-center justify-center text-s font-bold">@</div>
+            <span className="font-semibold text-lg">NexOS</span>
           </div>
           <div className="flex items-center gap-5 text-sm">
-            <span className='cursor-pointer hover:bg-slate-800 rounded-2xl p-1'>📶</span>
-            <span className='cursor-pointer hover:bg-slate-800 rounded-2xl p-1'>🔋</span>
-            <span className='cursor-pointer hover:bg-slate-800 rounded-2xl p-1'>{currentTime}</span>
+            <span className='hover:bg-slate-800 cursor-pointer p-2 rounded-2xl'>📶</span>
+            <span className='hover:bg-slate-800 cursor-pointer p-2 rounded-2xl'>🔋</span>
+            <span className='hover:bg-slate-800 cursor-pointer p-2 rounded-2xl'>{currentTime}</span>
           </div>
         </div>
       </nav>
 
-      {/*DESKTOP AREA*/}
+      {/* DESKTOP AREA */}
       <div 
         className="flex-1 relative bg-cover bg-center overflow-hidden"
         style={{ backgroundImage: "url('/wallpaper2.jpg')" }}
       >
-        {/*Desktop Icons*/}
+        {/* Desktop Icons */}
         <div className="absolute top-8 left-8 flex flex-col gap-6">
-          <DesktopIcon icon={<FolderOpen size={48} />} label="Files" onClick={() => alert("Coming Soon")} />
+          <DesktopIcon icon={<FolderOpen size={48} />} label="Files" onClick={() => openApp('files')} />
           <DesktopIcon icon={<TerminalIcon size={48} />} label="Terminal" onClick={() => alert("Coming Soon")} />
           <DesktopIcon icon={<Monitor size={48} />} label="Editor" onClick={() => openApp('editor')} />
-          <DesktopIcon icon={<Settings size={48} />} label="Settings" onClick={() => alert("Coming Soon")} />
+          <DesktopIcon icon={<SettingsIcon size={48} />} label="Settings" onClick={() => openApp('settings')} />
         </div>
 
-        {/*Windows*/}
+        {/* Open Windows */}
         {openWindows.map((win, index) => (
           <DraggableWindow 
             key={win.id}
@@ -73,25 +80,28 @@ export default function WebOS() {
             zIndex={100 + index}
           >
             {win.type === 'editor' && <TextEditor onClose={() => closeWindow(win.id)} />}
+            {win.type === 'settings' && <Settings onClose={() => closeWindow(win.id)} />}
+            {win.type === 'files' && <FileExplorer onClose={() => closeWindow(win.id)} />}
           </DraggableWindow>
         ))}
       </div>
 
-      {/*TASKBAR*/}
+      {/* FLOATING TASKBAR */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900/60 backdrop-blur-2xl border border-white/10 rounded-3xl px-4 py-3 flex items-center gap-2 shadow-2xl shadow-black/50 z-50">
-        <div className="w-9 h-9 bg-white/90 text-black rounded-2xl flex items-center justify-center font-bold text-2xl mr-2 cursor-pointer transition-all hover:p-3 hover:text-3xl hover:size-12">@</div>
+        <div className="w-9 h-9 bg-white/90 text-black rounded-2xl flex items-center justify-center font-bold text-2xl mr-2 cursor-pointer hover:w-12 hover:h-12 hover:text-3xl transition-all">@</div>
         <div className="w-px h-9 bg-white/20 mx-2" />
         <div className="flex items-center gap-2">
-          <TaskbarApp icon={<FolderOpen size={24} />} label="Files" />
+          <TaskbarApp icon={<FolderOpen size={24} />} label="Files" onClick={() => openApp('files')} />
           <TaskbarApp icon={<TerminalIcon size={24} />} label="Terminal" />
           <TaskbarApp icon={<Monitor size={24} />} label="Editor" onClick={() => openApp('editor')} />
+          <TaskbarApp icon={<SettingsIcon size={24} />} label="Settings" onClick={() => openApp('settings')} />
         </div>
       </div>
     </div>
   );
 }
 
-{/*DRAGGABLE WINDOW*/}
+/* ==================== DRAGGABLE WINDOW ==================== */
 function DraggableWindow({ win, onClose, zIndex, children }) {
   const [position, setPosition] = useState({ x: win.x, y: win.y });
   const [isDragging, setIsDragging] = useState(false);
@@ -134,11 +144,10 @@ function DraggableWindow({ win, onClose, zIndex, children }) {
         left: position.x,
         top: position.y,
         width: 720,
-        height: 520,
+        height: 560,
         zIndex: zIndex,
       }}
     >
-      {/*Title bar*/}
       <div
         className="h-10 bg-zinc-800/90 flex items-center px-4 cursor-default border-b border-zinc-700"
         onMouseDown={handleMouseDown}
@@ -159,7 +168,6 @@ function DraggableWindow({ win, onClose, zIndex, children }) {
         </div>
       </div>
 
-      {/*Content*/}
       <div className="flex-1 overflow-hidden">
         {children}
       </div>
@@ -167,10 +175,11 @@ function DraggableWindow({ win, onClose, zIndex, children }) {
   );
 }
 
+/* Helper Components */
 function DesktopIcon({ icon, label, onClick }) {
   return (
     <div onClick={onClick} className="flex flex-col items-center gap-1.5 w-20 cursor-pointer group">
-      <div className="p-3 rounded-2xl transition-all duration-200 group-hover:bg-slate-800/20 group-hover:p-5 group-hover:translate-x-5 group-active:scale-95">
+      <div className="p-3 group-hover:p-5 group-hover:translate-x-5 rounded-2xl transition-all duration-200 group-hover:bg-slate-800/20 group-active:scale-95">
         {icon}
       </div>
       <span className="text-xs text-center text-white drop-shadow-md bg-black/30 px-2 py-0.5 rounded-md">
@@ -184,7 +193,7 @@ function TaskbarApp({ icon, label, onClick }) {
   return (
     <div 
       onClick={onClick}
-      className="p-2 hover:bg-white/10 hover:p-3 hover:translate-y-[-5px] rounded-xl cursor-pointer transition-all active:scale-95"
+      className="p-2 hover:bg-white/10 rounded-xl cursor-pointer transition-all active:scale-95 hover:p-3 hover:translate-y-[-5px]"
     >
       {icon}
     </div>
