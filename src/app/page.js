@@ -1,65 +1,192 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState, useEffect } from 'react';
+import { Monitor, FolderOpen, Terminal as TerminalIcon, Settings, X, Minimize2 } from 'lucide-react';
+import TextEditor from './components/TextEditor';
+
+export default function WebOS() {
+  const [currentTime, setCurrentTime] = useState('');
+  const [openWindows, setOpenWindows] = useState([]);
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const openApp = (appType) => {
+    const newWindow = {
+      id: Date.now(),
+      type: appType,
+      title: appType === 'editor' ? 'Untitled - Text Editor' : 'App',
+      x: 150 + openWindows.length * 40,
+      y: 100 + openWindows.length * 30,
+    };
+    setOpenWindows([...openWindows, newWindow]);
+  };
+
+  const closeWindow = (id) => {
+    setOpenWindows(openWindows.filter(win => win.id !== id));
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="h-screen w-screen overflow-hidden bg-black text-white flex flex-col relative">
+
+      {/*TOP NAVBAR*/}
+      <nav className="h-12 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-700 flex items-center px-4 z-50">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-slate-800 rounded flex items-center justify-center text-s font-bold cursor-pointer">@</div>
+            <span className="font-semibold text-lg tracking-tight cursor-pointer">NexOS</span>
+          </div>
+          <div className="flex items-center gap-5 text-sm">
+            <span className='cursor-pointer hover:bg-slate-800 rounded-2xl p-1'>📶</span>
+            <span className='cursor-pointer hover:bg-slate-800 rounded-2xl p-1'>🔋</span>
+            <span className='cursor-pointer hover:bg-slate-800 rounded-2xl p-1'>{currentTime}</span>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </nav>
+
+      {/*DESKTOP AREA*/}
+      <div 
+        className="flex-1 relative bg-cover bg-center overflow-hidden"
+        style={{ backgroundImage: "url('/wallpaper2.jpg')" }}
+      >
+        {/*Desktop Icons*/}
+        <div className="absolute top-8 left-8 flex flex-col gap-6">
+          <DesktopIcon icon={<FolderOpen size={48} />} label="Files" onClick={() => alert("Coming Soon")} />
+          <DesktopIcon icon={<TerminalIcon size={48} />} label="Terminal" onClick={() => alert("Coming Soon")} />
+          <DesktopIcon icon={<Monitor size={48} />} label="Editor" onClick={() => openApp('editor')} />
+          <DesktopIcon icon={<Settings size={48} />} label="Settings" onClick={() => alert("Coming Soon")} />
         </div>
-      </main>
+
+        {/*Windows*/}
+        {openWindows.map((win, index) => (
+          <DraggableWindow 
+            key={win.id}
+            win={win}
+            onClose={closeWindow}
+            zIndex={100 + index}
+          >
+            {win.type === 'editor' && <TextEditor onClose={() => closeWindow(win.id)} />}
+          </DraggableWindow>
+        ))}
+      </div>
+
+      {/*TASKBAR*/}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900/60 backdrop-blur-2xl border border-white/10 rounded-3xl px-4 py-3 flex items-center gap-2 shadow-2xl shadow-black/50 z-50">
+        <div className="w-9 h-9 bg-white/90 text-black rounded-2xl flex items-center justify-center font-bold text-2xl mr-2 cursor-pointer transition-all hover:p-3 hover:text-3xl hover:size-12">@</div>
+        <div className="w-px h-9 bg-white/20 mx-2" />
+        <div className="flex items-center gap-2">
+          <TaskbarApp icon={<FolderOpen size={24} />} label="Files" />
+          <TaskbarApp icon={<TerminalIcon size={24} />} label="Terminal" />
+          <TaskbarApp icon={<Monitor size={24} />} label="Editor" onClick={() => openApp('editor')} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+{/*DRAGGABLE WINDOW*/}
+function DraggableWindow({ win, onClose, zIndex, children }) {
+  const [position, setPosition] = useState({ x: win.x, y: win.y });
+  const [isDragging, setIsDragging] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    if (e.target.closest('button')) return;
+    setIsDragging(true);
+    setOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    setPosition({
+      x: Math.max(0, e.clientX - offset.x),
+      y: Math.max(0, e.clientY - offset.y),
+    });
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
+  React.useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  return (
+    <div
+      className="absolute bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+      style={{
+        left: position.x,
+        top: position.y,
+        width: 720,
+        height: 520,
+        zIndex: zIndex,
+      }}
+    >
+      {/*Title bar*/}
+      <div
+        className="h-10 bg-zinc-800/90 flex items-center px-4 cursor-default border-b border-zinc-700"
+        onMouseDown={handleMouseDown}
+      >
+        <div className="flex-1 text-sm font-medium text-zinc-300 truncate">
+          {win.title}
+        </div>
+        <div className="flex items-center gap-1">
+          <button className="p-1 hover:bg-zinc-700 rounded-lg transition-colors">
+            <Minimize2 size={15} />
+          </button>
+          <button 
+            onClick={() => onClose(win.id)}
+            className="p-1 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
+          >
+            <X size={17} />
+          </button>
+        </div>
+      </div>
+
+      {/*Content*/}
+      <div className="flex-1 overflow-hidden">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function DesktopIcon({ icon, label, onClick }) {
+  return (
+    <div onClick={onClick} className="flex flex-col items-center gap-1.5 w-20 cursor-pointer group">
+      <div className="p-3 rounded-2xl transition-all duration-200 group-hover:bg-slate-800/20 group-hover:p-5 group-hover:translate-x-5 group-active:scale-95">
+        {icon}
+      </div>
+      <span className="text-xs text-center text-white drop-shadow-md bg-black/30 px-2 py-0.5 rounded-md">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function TaskbarApp({ icon, label, onClick }) {
+  return (
+    <div 
+      onClick={onClick}
+      className="p-2 hover:bg-white/10 hover:p-3 hover:translate-y-[-5px] rounded-xl cursor-pointer transition-all active:scale-95"
+    >
+      {icon}
     </div>
   );
 }
