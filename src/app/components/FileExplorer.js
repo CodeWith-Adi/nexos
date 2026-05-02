@@ -29,7 +29,7 @@ export default function Files() {
   return (
     <div className="w-full h-140 bg-zinc-900 border border-zinc-700 shadow-2xl flex overflow-hidden">
 
-      {/* Sidebar */}
+      {/*Sidebar*/}
       <div className="w-60 bg-zinc-800 p-4 space-y-6">
         <div>
           <p className="text-xs text-zinc-400 mb-2">Quick Access</p>
@@ -50,10 +50,10 @@ export default function Files() {
         </div>
       </div>
 
-      {/* Main Area */}
+      {/*Main Area*/}
       <div className="flex-1 flex flex-col">
 
-        {/* Top Bar */}
+        {/*Top Bar*/}
         <div className="p-4 border-b border-zinc-700 flex items-center justify-between">
           <h2 className="text-lg font-semibold">File Explorer</h2>
 
@@ -67,7 +67,7 @@ export default function Files() {
           </div>
         </div>
 
-        {/* File Grid */}
+        {/*File Grid*/}
         <div className="p-6 grid grid-cols-4 gap-6 overflow-auto">
           {files.map((file) => (
             <div
