@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Monitor, FolderOpen, Terminal as TerminalIcon, CameraIcon, Settings as SettingsIcon, Minimize2, X, Search, Power } from 'lucide-react';
+import { Monitor, FolderOpen, Terminal as TerminalIcon, CameraIcon, Settings as SettingsIcon, CalculatorIcon, Minimize2, X, Search, Power } from 'lucide-react';
 import TextEditor from './components/TextEditor';
 import Settings from './components/Settings';
 import FileExplorer from './components/FileExplorer';
 import Camera from './components/Camera';
+import Calculator from './components/Calculator';
 
 export default function WebOS() {
   const [currentTime, setCurrentTime] = useState('');
@@ -39,11 +40,12 @@ export default function WebOS() {
       title: appType === 'editor' ? 'Untitled - Text Editor' :
         appType === 'settings' ? 'Settings' :
           appType === 'camera' ? 'Camera' :
+          appType === 'calculator' ? 'Calculator' :
             appType === 'files' ? 'File Explorer' : 'App',
       x: 150 + openWindows.length * 40,
       y: 100 + openWindows.length * 30,
     };
-    setOpenWindows([...openWindows, newWindow]);
+      setOpenWindows([...openWindows, newWindow]);
     setShowStartMenu(false);
   };
 
@@ -82,6 +84,7 @@ export default function WebOS() {
           <DesktopIcon icon={<Monitor size={48} />} label="Editor" onClick={() => openApp('editor')} />
           <DesktopIcon icon={<SettingsIcon size={48} />} label="Settings" onClick={() => openApp('settings')} />
           <DesktopIcon icon={<CameraIcon size={48} />} label="Camera" onClick={() => openApp('camera')} />
+          <DesktopIcon icon={<CalculatorIcon size={48} />} label="Calculator" onClick={() => openApp('calculator')} />
         </div>
 
         {/* START MENU*/}
@@ -113,6 +116,10 @@ export default function WebOS() {
                 <CameraIcon size={20} />
                 <span className="text-xs">Camera</span>
               </div>
+              <div onClick={() => openApp('calculator')} className="p-3 rounded-xl hover:bg-white/10 cursor-pointer flex flex-col items-center gap-2">
+                <CalculatorIcon size={20} />
+                <span className="text-xs">Calculator</span>
+              </div>
             </div>
 
             <div className="flex justify-between items-center border-t border-white/10 pt-3">
@@ -141,6 +148,7 @@ export default function WebOS() {
             {win.type === 'settings' && <Settings onClose={() => closeWindow(win.id)} />}
             {win.type === 'files' && <FileExplorer onClose={() => closeWindow(win.id)} />}
             {win.type === 'camera' && <Camera onClose={() => closeWindow(win.id)} />}
+            {win.type === 'calculator' && <Calculator onClose={() => closeWindow(win.id)} />}
           </DraggableWindow>
         ))}
       </div>
@@ -160,13 +168,14 @@ export default function WebOS() {
           <TaskbarApp icon={<Monitor size={24} />} label="Editor" onClick={() => openApp('editor')} />
           <TaskbarApp icon={<SettingsIcon size={24} />} label="Settings" onClick={() => openApp('settings')} />
           <TaskbarApp icon={<CameraIcon size={24} />} label="Camera" onClick={() => openApp('camera')} />
+          <TaskbarApp icon={<CalculatorIcon size={24} />} label="Calculator" onClick={() => openApp('calculator')} />
         </div>
       </div>
     </div>
   );
 }
 
-/* ==================== DRAGGABLE WINDOW ==================== */
+/*DRAGGABLE WINDOW*/
 function DraggableWindow({ win, onClose, zIndex, children }) {
   const [position, setPosition] = useState({ x: win.x, y: win.y });
   const [isDragging, setIsDragging] = useState(false);
@@ -240,7 +249,7 @@ function DraggableWindow({ win, onClose, zIndex, children }) {
   );
 }
 
-/* Helper Components */
+/*Helper Components*/
 function DesktopIcon({ icon, label, onClick }) {
   return (
     <div onClick={onClick} className="flex flex-col items-center gap-1.5 w-20 cursor-pointer group">

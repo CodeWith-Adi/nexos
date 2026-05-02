@@ -17,7 +17,7 @@ export default function StartMenu({ onOpenApp }) {
   );
 
   return (
-    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-[420px] bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl p-4">
+    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-105 bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl p-4">
 
       {/* Search */}
       <div className="flex items-center bg-zinc-800 px-3 py-2 rounded-xl mb-4">
