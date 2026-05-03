@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Monitor, Settings as SettingsIcon, Minimize2, X, Search, Power } from 'lucide-react';
+import { Settings as SettingsIcon, Minimize2, Maximize2, X, Search, Power } from 'lucide-react';
 import TextEditor from './components/TextEditor';
 import Settings from './components/Settings';
 import FileExplorer from './components/FileExplorer';
 import Camera from './components/Camera';
 import Calculator from './components/Calculator';
 import NexTerminal from './components/NexTerminal';
-import { FaFolder, FaTerminal, FaCamera, FaCalculator, FaFileAlt, FaCog, } from "react-icons/fa";
+import Browser from './components/Browser';
+import { FaFolder, FaGlobe, FaGamepad, FaTerminal, FaCamera, FaCalculator, FaFileAlt, FaCog, } from "react-icons/fa";
+import SnakeGame from './components/SnakeGame';
 
 export default function WebOS() {
   const [currentTime, setCurrentTime] = useState('');
@@ -20,6 +22,7 @@ export default function WebOS() {
   const [wallpaper, setWallpaper] = useState("/wallpapers/wallpaper7.jpg");
   const [activeWindow, setActiveWindow] = useState(null);
   const [minimizedWindows, setMinimizedWindows] = useState([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -89,7 +92,8 @@ export default function WebOS() {
             appType === 'camera' ? 'Camera' :
               appType === 'calculator' ? 'Calculator' :
                 appType === 'files' ? 'File Explorer' :
-                  appType === 'terminal' ? 'Terminal' : 'App',
+                  appType === 'browser' ? 'Browser' :
+                    appType === 'terminal' ? 'Terminal' : 'App',
       x: 150 + openWindows.length * 40,
       y: 100 + openWindows.length * 30,
     };
@@ -216,6 +220,26 @@ export default function WebOS() {
             label="Calculator"
             onClick={() => openApp('calculator')}
           />
+
+          <DesktopIcon
+            icon={
+              <div className="p-4 rounded-2xl bg-linear-to-br from-blue-500/20 to-black-700/20">
+                <FaGlobe size={40} className="text-blue-400" />
+              </div>
+            }
+            label="Browser"
+            onClick={() => openApp('browser')}
+          />
+
+          <DesktopIcon
+            icon={
+              <div className="p-4 rounded-2xl bg-linear-to-br from-green-500/20 to-green-700/20">
+                <FaGamepad size={40} className="text-green-400" />
+              </div>
+            }
+            label="Snake"
+            onClick={() => openApp('snake')}
+          />
         </div>
 
         {/* Start menu*/}
@@ -282,6 +306,13 @@ export default function WebOS() {
                 <span className="text-sm">Settings</span>
               </div>
 
+              <div onClick={() => openApp('snake')} className="flex items-center gap-2 cursor-pointer hover:bg-white/10 px-2 py-1 rounded-lg">
+                <FaGamepad size={16} className="text-green-400" />
+                <span className="text-sm">Snake</span>
+              </div>
+
+              
+
               <div className="p-2 hover:bg-red-500 rounded-xl cursor-pointer">
                 <Power size={16} />
               </div>
@@ -309,7 +340,9 @@ export default function WebOS() {
               {win.type === 'files' && <FileExplorer onClose={() => closeWindow(win.id)} />}
               {win.type === 'camera' && <Camera onClose={() => closeWindow(win.id)} />}
               {win.type === 'calculator' && <Calculator onClose={() => closeWindow(win.id)} />}
-              {win.type === 'terminal' && <NexTerminal />}
+              {win.type === 'terminal' && <NexTerminal onClose={() => closeWindow(win.id)} />}
+              {win.type === 'browser' && <Browser onClose={() => closeWindow(win.id)} />}
+              {win.type === 'snake' && <SnakeGame onClose={() => closeWindow(win.id)} />}
             </DraggableWindow>
           )
         })}
@@ -354,6 +387,16 @@ export default function WebOS() {
             icon={<FaCalculator size={22} className="text-red-400" />}
             onClick={() => openApp('calculator')}
           />
+
+          <TaskbarApp
+            icon={<FaGlobe size={22} className="text-blue-400" />}
+            onClick={() => openApp('browser')}
+          />
+
+          <TaskbarApp
+            icon={<FaGamepad size={22} className="text-green-400" />}
+            onClick={() => openApp('snake')}
+          />
         </div>
       </div>
     </div>
@@ -361,12 +404,15 @@ export default function WebOS() {
 }
 
 function DraggableWindow({ win, onClose, onMinimize, zIndex, children }) {
-  const [position, setPosition] = useState({ x: win.x, y: win.y });
-  const [isDragging, setIsDragging] = useState(false);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = React.useState({ x: win.x, y: win.y });
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [offset, setOffset] = React.useState({ x: 0, y: 0 });
+
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
 
   const handleMouseDown = (e) => {
     if (e.target.closest('button')) return;
+
     setIsDragging(true);
     setOffset({
       x: e.clientX - position.x,
@@ -375,7 +421,8 @@ function DraggableWindow({ win, onClose, onMinimize, zIndex, children }) {
   };
 
   const handleMouseMove = (e) => {
-    if (!isDragging) return;
+    if (!isDragging || isFullscreen) return;
+
     setPosition({
       x: Math.max(0, e.clientX - offset.x),
       y: Math.max(0, e.clientY - offset.y),
@@ -385,55 +432,82 @@ function DraggableWindow({ win, onClose, onMinimize, zIndex, children }) {
   const handleMouseUp = () => setIsDragging(false);
 
   React.useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging]);
+  });
+
+  const toggleFullscreen = () => {
+    const elem = document.getElementById(`window-${win.id}`);
+
+    if (!document.fullscreenElement) {
+      elem?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
 
   return (
     <div
+      id={`window-${win.id}`}
       className="absolute bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
       style={{
-        left: position.x,
-        top: position.y,
-        width: 720,
-        height: 560,
+        left: isFullscreen ? 0 : position.x,
+        top: isFullscreen ? 0 : position.y,
+        width: isFullscreen ? "100vw" : 720,
+        height: isFullscreen ? "100vh" : 560,
         zIndex: zIndex,
       }}
     >
+
+      {/*TitleBar*/}
       <div
-        className="h-10 bg-zinc-800/90 flex items-center px-4 cursor-default border-b border-zinc-700"
+        className="h-10 bg-zinc-800/90 flex items-center px-4 border-b border-zinc-700"
         onMouseDown={handleMouseDown}
       >
-        <div className="flex-1 text-sm font-medium text-zinc-300 truncate">
+        <div className="flex-1 text-sm text-zinc-300 truncate">
           {win.title}
         </div>
 
         <div className="flex items-center gap-1">
+
+          {/*fullscreen*/}
           <button
-            onClick={() => onMinimize?.(win.id)}
-            className="p-1 hover:bg-zinc-700 rounded-lg"
+            onClick={toggleFullscreen}
+            className="p-1 hover:bg-zinc-700 rounded-lg transition"
           >
-            <Minimize2 size={15} />
+            <Maximize2 size={16} />
           </button>
 
+          {/*minimize*/}
+          <button
+            onClick={() => onMinimize?.(win.id)}
+            className="p-1 hover:bg-zinc-700 rounded-lg transition"
+          >
+            <Minimize2 size={16} />
+          </button>
+
+          {/*close*/}
           <button
             onClick={() => onClose?.(win.id)}
-            className="p-1 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
+            className="p-1 hover:bg-red-500 rounded-lg transition"
           >
-            <X size={17} />
+            <X size={16} />
           </button>
+
         </div>
       </div>
 
       <div className="flex-1 overflow-hidden">
         {children}
       </div>
+
     </div>
   );
 }
@@ -452,7 +526,7 @@ function DesktopIcon({ icon, label, onClick }) {
   );
 }
 
-function TaskbarApp({ icon, label, onClick, isActive }) {
+function TaskbarApp({ icon, onClick, isActive }) {
   return (
     <div
       onClick={onClick}
@@ -464,3 +538,15 @@ function TaskbarApp({ icon, label, onClick, isActive }) {
     </div>
   );
 }
+
+const toggleFullscreen = () => {
+  const elem = document.getElementById(`window-${win.id}`);
+
+  if (!document.fullscreenElement) {
+    elem?.requestFullscreen();
+    setIsFullscreen(true);
+  } else {
+    document.exitFullscreen();
+    setIsFullscreen(false);
+  }
+};

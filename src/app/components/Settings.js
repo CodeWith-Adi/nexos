@@ -24,7 +24,6 @@ export default function Settings({ onClose, onWallpaperChange }) {
   return (
     <div className="w-full h-full bg-zinc-900 border border-zinc-700 p-6 overflow-auto shadow-2xl flex flex-col text-white">
 
-      {/* HEADER */}
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-2xl font-bold">Wallpaper Settings</h1>
 
@@ -36,7 +35,6 @@ export default function Settings({ onClose, onWallpaperChange }) {
         </button>
       </div>
 
-      {/* WALLPAPERS */}
       <div className="grid grid-cols-2 gap-4">
 
         {wallpapers.map((wp, index) => (
@@ -59,7 +57,6 @@ export default function Settings({ onClose, onWallpaperChange }) {
 
       </div>
 
-      {/* APPLY BUTTON */}
       <div className="mt-6 flex justify-end">
         <button
           onClick={applyWallpaper}
