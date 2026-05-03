@@ -1,232 +1,159 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-export default function NexTerminal({ fileSystem, setFileSystem }) {
-  const [outputs, setOutputs] = useState([]);
+const DEFAULT_FOLDERS = ["music", "images", "documents", "downloads"];
+
+export default function Terminal() {
+  const [history, setHistory] = useState([]);
+  const [currentFolder, setCurrentFolder] = useState("documents");
+  const [color, setColor] = useState("#ffffff");
+
   const inputRef = useRef(null);
-  const outputRef = useRef(null);
-  const currentPath = useRef(["Desktop"]);
-  const currentColor = useRef("#22c55e"); // green
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    if (inputRef.current) inputRef.current.focus();
+    inputRef.current?.focus();
+    setHistory([
+      "NexOS Terminal v1.0",
+      "Type 'help' to see available commands.",
+      "----------------------------------------"
+    ]);
   }, []);
 
-  /*HELPERS*/
-
-  const getCurrentDir = () => {
-    let dir = fileSystem;
-    for (let folder of currentPath.current) {
-      dir = dir[folder]?.children || dir[folder];
-    }
-    return dir;
-  };
-
-  const addCommand = (cmd) => {
-    setOutputs(prev => [
-      ...prev,
-      { text: `${currentPath.current.join("\\")}> ${cmd}`, type: 'command' }
-    ]);
-  };
-
-  const addOutput = (text, type = 'output') => {
-    setOutputs(prev => [...prev, { text, type }]);
-
+  const addLine = (text) => {
+    setHistory(prev => [...prev, text]);
     setTimeout(() => {
-      if (outputRef.current) {
-        outputRef.current.scrollTop = outputRef.current.scrollHeight;
-      }
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }, 0);
   };
 
-  /*COMMANDS*/
-
-  const commands = {
-
-    dir: () => {
-      const dir = getCurrentDir();
-      const entries = Object.entries(dir || {});
-
-      addOutput(`Directory of ${currentPath.current.join("\\")}\n`, "info");
-
-      if (entries.length === 0) {
-        addOutput("(Empty)", "info");
-        return;
-      }
-
-      entries.forEach(([name, file]) => {
-        if (file.type === "folder") {
-          addOutput(`${name.padEnd(20)} <DIR>`);
-        } else {
-          addOutput(name);
-        }
-      });
-    },
-
-    ls() { this.dir(); },
-
-    cd: (folder) => {
-      if (!folder) return;
-
-      if (folder === "..") {
-        if (currentPath.current.length > 1) {
-          currentPath.current.pop();
-        }
-        return;
-      }
-
-      const dir = getCurrentDir();
-
-      if (dir[folder] && dir[folder].type === "folder") {
-        currentPath.current.push(folder);
-      } else {
-        addOutput("Folder not found", "error");
-      }
-    },
-
-    mkdir: (name) => {
-      if (!name) return;
-
-      setFileSystem(prev => {
-        const updated = { ...prev };
-        let dir = updated;
-
-        for (let folder of currentPath.current) {
-          dir = dir[folder].children;
-        }
-
-        if (!dir[name]) {
-          dir[name] = {
-            type: "folder",
-            children: {}
-          };
-        }
-
-        return updated;
-      });
-    },
-
-    touch: (name) => {
-      if (!name) return;
-
-      setFileSystem(prev => {
-        const updated = { ...prev };
-        let dir = updated;
-
-        for (let folder of currentPath.current) {
-          dir = dir[folder].children;
-        }
-
-        dir[name] = {
-          type: "text",
-          content: "",
-          createdAt: Date.now()
-        };
-
-        return updated;
-      });
-    },
-
-    cat: (name) => {
-      const dir = getCurrentDir();
-
-      if (dir[name] && dir[name].type === "text") {
-        addOutput(dir[name].content || "(empty)");
-      } else {
-        addOutput("File not found", "error");
-      }
-    },
-
-    rm: (name) => {
-      setFileSystem(prev => {
-        const updated = { ...prev };
-        let dir = updated;
-
-        for (let folder of currentPath.current) {
-          dir = dir[folder].children;
-        }
-
-        delete dir[name];
-        return updated;
-      });
-    },
-
-    clear: () => setOutputs([]),
-    clr() { this.clear(); },
-
-    help: () => {
-      addOutput(`
-Commands:
-dir        - list files
-cd <name>  - change directory
-mkdir <n>  - create folder
-touch <n>  - create file
-cat <file> - read file
-rm <file>  - delete file
-clear      - clear screen
-`, "info");
-    }
+  const fetchFiles = async (folder) => {
+    const res = await fetch(`/api/files?folder=${folder}`);
+    const data = await res.json();
+    return data.files || [];
   };
 
-  /*INPUT*/
+  const processCommand = async (cmd) => {
+    const parts = cmd.trim().split(" ");
+    const command = parts[0].toLowerCase();
 
-  const processCommand = (input) => {
-    const trimmed = input.trim();
-    if (!trimmed) return;
+    addLine(`@:\\${currentFolder}> ${cmd}`);
+    if (command === "ls" || command === "dir") {
+      const files = await fetchFiles(currentFolder);
 
-    addCommand(trimmed);
+      if (files.length === 0) {
+        addLine("No files found");
+      } else {
+        files.forEach(file => addLine(file.name));
+      }
+    }
 
-    const [cmd, ...args] = trimmed.split(" ");
-    const argStr = args.join(" ");
+    else if (command === "cd") {
+      const folder = parts[1];
 
-    if (commands[cmd]) {
-      commands[cmd](argStr);
-    } else {
-      addOutput(`Command not found: ${cmd}`, "error");
+      if (!folder) {
+        addLine("Usage: cd <folder>");
+        return;
+      }
+
+      if (DEFAULT_FOLDERS.includes(folder)) {
+        setCurrentFolder(folder);
+      } else {
+        addLine("Folder not found");
+      }
+    }
+
+    else if (command === "clear" || command === "cls") {
+      setHistory([]);
+    }
+
+    else if (command === "date") {
+      const now = new Date();
+      addLine(now.toDateString());
+    }
+
+    else if (command === "time") {
+      const now = new Date();
+      addLine(now.toLocaleTimeString());
+    }
+
+    else if (command === "color") {
+      const colorInput = parts[1];
+
+      const colorMap = {
+        white: "#ffffff",
+        green: "#00ff00",
+        red: "#ff4d4d",
+        blue: "#4da6ff",
+        yellow: "#ffff66",
+        cyan: "#00ffff",
+        magenta: "#ff00ff"
+      };
+
+      if (!colorInput) {
+        addLine("Usage: color <name>");
+        addLine("Available: white, green, red, blue, yellow, cyan, magenta");
+        return;
+      }
+
+      if (colorMap[colorInput]) {
+        setColor(colorMap[colorInput]);
+      } else {
+        addLine("Invalid color");
+      }
+    }
+
+    else if (command === "pwd") {
+      addLine(`@:\\${currentFolder}`);
+    }
+
+    else if (command === "help") {
+      addLine("Available commands:");
+      addLine("ls / dir        → list files");
+      addLine("cd <folder>     → change folder");
+      addLine("pwd             → current folder");
+      addLine("date            → show date");
+      addLine("time            → show time");
+      addLine("color <name>    → change text color");
+      addLine("clear / cls     → clear screen");
+      addLine("help            → show commands");
+    }
+
+    else {
+      addLine("Command not found");
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      const value = inputRef.current.value;
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const value = inputRef.current.innerText;
       processCommand(value);
-      inputRef.current.value = '';
+      inputRef.current.innerText = "";
     }
   };
 
-  /*UI*/
-
   return (
-    <div className="w-full h-full bg-black text-green-400 font-mono text-sm flex flex-col">
+    <div
+      ref={containerRef}
+      className="w-full h-full bg-black font-mono text-sm p-3 overflow-auto"
+      style={{ color }}
+      onClick={() => inputRef.current?.focus()}
+    >
+      {history.map((line, i) => (
+        <div key={i}>{line}</div>
+      ))}
 
-      {/* Output */}
-      <div
-        ref={outputRef}
-        className="flex-1 overflow-y-auto p-3 space-y-1"
-      >
-        {outputs.map((o, i) => (
-          <div key={i} className={
-            o.type === 'error' ? 'text-red-400' :
-            o.type === 'info' ? 'text-blue-400' :
-            o.type === 'command' ? 'text-green-500' :
-            'text-green-300'
-          }>
-            {o.text}
-          </div>
-        ))}
-      </div>
-
-      {/* Input */}
-      <div className="flex items-center px-3 py-2 border-t border-zinc-700">
-        <span className="mr-2 text-green-500">
-          {currentPath.current.join("\\")} &gt;
+      <div className="flex">
+        <span className="mr-2 text-green-400">
+          @{`:\\${currentFolder}>`}
         </span>
-        <input
+        <div
           ref={inputRef}
+          contentEditable
           onKeyDown={handleKeyDown}
-          className="bg-transparent outline-none flex-1 text-green-300 caret-green-400"
-          autoFocus
+          className="outline-none flex-1"
         />
       </div>
     </div>

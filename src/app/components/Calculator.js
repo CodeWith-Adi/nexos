@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 
 export default function Calculator() {
   const [input, setInput] = useState('');
@@ -21,13 +21,9 @@ export default function Calculator() {
 
   return (
     <div className="w-full h-full bg-zinc-900 flex flex-col p-4">
-
-      {/* Display */}
       <div className="bg-black text-white text-right text-3xl p-4 rounded-xl mb-4 overflow-x-auto">
         {input || '0'}
       </div>
-
-      {/* Buttons */}
       <div className="grid grid-cols-4 gap-3 flex-1">
         {[
           '7','8','9','/',
@@ -43,8 +39,6 @@ export default function Calculator() {
             {btn}
           </button>
         ))}
-
-        {/* Clear button */}
         <button
           onClick={clear}
           className="col-span-4 bg-red-500 hover:bg-red-600 rounded-xl font-semibold"
