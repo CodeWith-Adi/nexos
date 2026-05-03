@@ -25,3 +25,5 @@ Nexos is a Web OS, An Operating System which you can use online.
 - 7. Terminal - use "help" command to know about the commands of terminal
 
 - 8. Snake Game - Just for Fun !! Play....
+
+## Note - Please use in full screen mode "F11" for better experience.
