@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Nexos Project
 
-## Getting Started
+## Overview
 
-First, run the development server:
+Nexos is a Web OS, An Operating System which you can use online.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## How to use:-
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Enter the default password in the site - "admin"
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+` In the main Window, you will see all the apps on desktop you can simply use them....`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- 1. Text Editor - You can edit and manage text data here. The files would be saved in documents folder
 
-## Learn More
+- 2. Setting - You can manage device settings here. For now it can only help you in changing wallpapers but it's further expandable.
 
-To learn more about Next.js, take a look at the following resources:
+- 3. File Manager - Here you can see all the data you have ever genrated.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- 4. Camera - Just to capture some moments, files will be saved in images folder with .png extention.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 5. Browser - It would help you to browse some sites it's minimal currently but useable. you can open sites like wikipedia, etc.
 
-## Deploy on Vercel
+- 6. Calculator - To calculate mathematical expressions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- 7. Terminal - use "help" command to know about the commands of terminal
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 8. Snake Game - Just for Fun !! Play....
